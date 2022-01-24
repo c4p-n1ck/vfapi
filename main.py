@@ -20,6 +20,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.openapi.utils import get_openapi
 from fastapi.openapi.docs import get_swagger_ui_oauth2_redirect_html
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 class User(BaseModel):
     name: str
@@ -27,7 +28,7 @@ class User(BaseModel):
     address: str
     email: str
     password: str
-    contact: str
+    tel: str
 
 author_info = {
     'name': 'Captain Nick Lucifer*',
@@ -61,6 +62,13 @@ db_client = MontyClient(
         busy_timeout=5000
         )
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def openapi():
     if app.openapi_schema:
@@ -95,7 +103,7 @@ CREATE TABLE users ( id INTEGER PRIMARY KEY AUTOINCREMENT,
                      password TEXT NOT NULL,
                      address TEXT NOT NULL,
                      email TEXT NOT NULL,
-                     contact TEXT NOT NULL
+                     tel TEXT NOT NULL
                      );'''[1:])
     await db.commit()
     for _ in range(random.randint(7, 84)):
@@ -105,7 +113,7 @@ INSERT INTO users ( name,
                     password,
                     address,
                     email,
-                    contact
+                    tel
                     )
        VALUES (
                 "{fake.name()}",
@@ -133,7 +141,7 @@ async def init_nosql_db():
             'username': user[2],
             'address': user[4],
             'email': user[5],
-            'contact': user[6]
+            'tel': user[6]
             })
 
 async def init_db():
@@ -157,7 +165,7 @@ async def run_sql_query(query, commit=False):
             data['username'] = _data[2]
             data['address'] = _data[4]
             data['email'] = _data[5]
-            data['contact'] = _data[6]
+            data['tel'] = _data[6]
             return data
         return {'users': _data}
     except KeyboardInterrupt as e:
@@ -169,7 +177,7 @@ async def run_sql_query(query, commit=False):
 def get_nosql_users(query):
     users = db_client.vfapi.users
     user_data = tuple(users.find(query))
-    for data in user_data: data.pop('_id'); data.pop('password')
+    for data in user_data: data.pop('_id'); # data.pop('password')
     if len(user_data) == 1: return user_data[0]
     return tuple(user_data)
 
@@ -192,14 +200,14 @@ INSERT INTO users (
                     password,
                     address,
                     email,
-                    contact
+                    tel
                 ) VALUES ( 
                             "{user.name}",
                             "{user.username}",
                             "{user.password}",
                             "{user.address}",
                             "{user.email}",
-                            "{user.contact}"
+                            "{user.tel}"
                             );
 '''[1:-1]
     await run_sql_query(query, commit=True)
@@ -211,7 +219,7 @@ INSERT INTO users (
         'password': user.password,
         'address': user.address,
         'email': user.email,
-        'contact': user.contact
+        'tel': user.tel
         })
     return {'resp': 'done'}
 
@@ -271,4 +279,8 @@ app.openapi = openapi
 
 if __name__ == '__main__':
     # TODO: Custom port number.
-    asyncio.run(init_db()); __import__('uvicorn').run('main:app', port=8888, reload=False)
+    args = __import__('sys').argv
+    if '--dev' in args:
+        asyncio.run(init_db()); __import__('uvicorn').run('main:app', port=8888, reload=True)
+    else:
+        asyncio.run(init_db()); __import__('uvicorn').run('main:app', port=8888, reload=False)
