@@ -1,11 +1,22 @@
 #/bin/bash
 
+stty -echoctl
+
 # TODO: Custom Ports
 
 export host="127.0.0.1"
 export ui_port=8008
 export api_port=8888
 export script_dir=$PWD
+
+
+quit() {
+    tput setaf 1
+    printf "\n[!] SIGINT trapped, terminating..\n"
+    sleep 0.48
+    tput sgr0
+    exit 0
+}; trap 'quit' SIGINT
 
 
 check_ui_stuff() {
@@ -43,7 +54,6 @@ banner () {
 		echo "__ _| __/_\ | _ \_ _|"
 		echo "\ V / _/ _ \|  _/| | "
 		echo " \_/|_/_/ \_\_| |___|"
-		echo ""
 	fi
 }
 
@@ -73,17 +83,21 @@ main() {
 	echo -e "\t\tvulnerable FastAPI\n"
 	check_ports
 	check_ui_stuff
+	sleep 0.48
 	if [[ $1 == "--dev" ]]; then
-		echo "[+] Starting Vulnerable API UI <dev>"
-		cd vui && trex run start &
-		sleep 0.8
 		echo "[+] Starting Vulnerable API <dev"
-		cd $script_dir && python3 main.py --dev
+		cd $script_dir && python3 main.py --dev &
+		sleep 0.84
+		echo "[+] Starting Vulnerable API UI <dev>"
+		while :; do
+			cd vui && trex run start
+			cd $script_dir
+		done
 	else
-		echo "[+] Starting Vulnerable API UI"
-		cd vui && snel build && snel serve
 		echo "[+] Starting Vulnerable API"
 		cd $script_dir && python3 main.py
+		echo "[+] Starting Vulnerable API UI"
+		cd vui && snel build && snel serve
 	fi
 }
 
