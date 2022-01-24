@@ -9,6 +9,7 @@
   "files": [
     "./src",
     "./public/index.html",
-    "./public/global.css"
+    "./public/global.css",
+    "./public/css/cirrus.min.css"
   ]
 }

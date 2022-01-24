@@ -12,16 +12,17 @@ export script_dir=$PWD
 
 quit() {
     tput setaf 1
-    printf "\n[!] SIGINT trapped, terminating..\n"
-    sleep 0.48
+    rm -rf __pycache__/ vfapi.*.db &
+    printf "\n[!] SIGINT trapped, terminating..\n\n"
     tput sgr0
+    sleep 0.48
     exit 0
 }; trap 'quit' SIGINT
 
 
 check_ui_stuff() {
 	if ! command -v deno >/dev/null; then
-		echo "Deno is not found in the path. Shall I install it?"
+		echo "[-] Deno is not found in the path. Shall I install it?"
 		echo -n "[y/N]: "
 		read prompt
 		if [[ $prompt == "y" || $prompt == "Y" ]]; then
@@ -35,7 +36,7 @@ check_ui_stuff() {
 				test -f $dot_filename && echo "export DENO_INSTALL="/home/\$USER/.deno\nexport PATH="\$DENO_INSTALL/bin/:\$PATH" >> $dot_filename
 			done
 		else
-			echo "Please do make sure 'deno' is available in the \$PATH."
+			echo "[!] Please do make sure 'deno' is available in the \$PATH."
 			exit 1
 		fi
 	fi
@@ -77,27 +78,26 @@ check_ports() {
 
 
 main() {
-	# clear
-	rm -rf __pycache__/ vfaspi.db*
+	rm -rf __pycache__/ vfapi.*.db
 	banner
-	echo -e "\t\tvulnerable FastAPI\n"
+	printf "\t\tvulnerable FastAPI\n"
 	check_ports
 	check_ui_stuff
 	sleep 0.48
 	if [[ $1 == "--dev" ]]; then
-		echo "[+] Starting Vulnerable API <dev"
+		printf "\n[!] Starting Vulnerable API <dev>\n"
 		cd $script_dir && python3 main.py --dev &
 		sleep 0.84
-		echo "[+] Starting Vulnerable API UI <dev>"
 		while :; do
+			printf "\n[!] Starting Vulnerable API UI <dev>\n"
 			cd vui && trex run start
 			cd $script_dir
 		done
 	else
-		echo "[+] Starting Vulnerable API"
-		cd $script_dir && python3 main.py
-		echo "[+] Starting Vulnerable API UI"
-		cd vui && snel build && snel serve
+		printf "\n[+] Starting Vulnerable API\n"
+		cd $script_dir && python3 main.py &
+		printf "\n[+] Starting Vulnerable API UI\n\n"
+		cd vui && snel build  # TODO: Serve the built files.
 	fi
 }
 
