@@ -1,0 +1,3 @@
+[submodule "vui"]
+	path = vui
+	url = https://github.com/c4p-n1ck/vui
