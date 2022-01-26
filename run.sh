@@ -21,6 +21,7 @@ quit() {
 
 
 check_ui_stuff() {
+	[ "$(ls -A ./vui)" ] || git submodule init && git submodule update
 	if ! command -v deno >/dev/null; then
 		echo "[-] Deno is not found in the path. Shall I install it?"
 		echo -n "[y/N]: "
