@@ -22,6 +22,7 @@ quit() {
 
 check_ui_stuff() {
 	[ "$(ls -A ./vui)" ] || git submodule init && git submodule update
+	printf "\n[!] Upading (if any) Vulnerable UI (vui) over git.\n"
 	cd vui && git pull $(git remote get-url origin) &>/dev/null && cd - >/dev/null
 	if ! command -v deno >/dev/null; then
 		echo "[-] Deno is not found in the path. Shall I install it?"
@@ -62,6 +63,7 @@ banner () {
 
 
 check_ports() {
+	# TODO: fix code-repetition
 	ui_check=$(nc -zw5 $host $ui_port)
 	if [[ $? -eq 0 ]]; then
 		echo "[-] Looks like port ://$host:$ui_port/ is already occupied. Please kill/stop the running service conflicting the port number."
@@ -87,7 +89,7 @@ main() {
 	check_ui_stuff
 	sleep 0.48
 	if [[ $1 == "--dev" ]]; then
-		printf "\n[!] Starting Vulnerable API <dev>\n"
+		printf "[!] Starting Vulnerable API <dev>\n"
 		cd $script_dir && python3 main.py --dev &
 		sleep 0.84
 		while :; do
@@ -96,10 +98,10 @@ main() {
 			cd $script_dir
 		done
 	else
-		printf "\n[+] Starting Vulnerable API\n"
+		printf "[+] Starting Vulnerable API\n"
 		cd $script_dir && python3 main.py &
-		printf "\n[+] Starting Vulnerable API UI\n\n"
-		cd vui && snel build && cd dist && file_server
+		printf "[+] Starting Vulnerable API UI\n"
+		cd vui && snel build && cd dist && file_server --host 127.0.0.1 -p 8008
 		rm -rf __pycache__/ vfapi.*.db
 	fi
 }
