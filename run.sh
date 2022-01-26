@@ -98,12 +98,7 @@ main() {
 		printf "\n[+] Starting Vulnerable API\n"
 		cd $script_dir && python3 main.py &
 		printf "\n[+] Starting Vulnerable API UI\n\n"
-		cd vui && snel build
-		cp -f ./public/__index.html ./output/index.html
-		cp -f ./public/favicon.ico ./output
-		cp -f ./public/global.css ./output
-		cp -fr ./public/dist/* ./output/dist/
-		cd ./output && file_server
+		cd vui && snel build && cd dist && file_server
 	fi
 }
 
