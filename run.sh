@@ -99,6 +99,7 @@ main() {
 		cd $script_dir && python3 main.py &
 		printf "\n[+] Starting Vulnerable API UI\n\n"
 		cd vui && snel build && cd dist && file_server
+		rm -rf __pycache__/ vfapi.*.db
 	fi
 }
 
