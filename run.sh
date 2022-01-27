@@ -26,11 +26,11 @@ check_ui_stuff() {
 	if [ "$(ls -A ./vui)" ] ;then
 		printf "\n[!] Updating (if any) Vulnerable UI (vui) over git.\n"
 		cd vui && git pull $(git remote get-url origin) &>/dev/null && cd - >/dev/null
-		echo ""
 	else
 		printf "\n[!] Downloading Vulnerable User Interface (vui) over git.\n"
 		git submodule init
 		git submodule update
+		echo ""
 	fi
 	if ! command -v deno >/dev/null; then
 		echo "[-] Deno is not found in the path. Shall I install it?"
