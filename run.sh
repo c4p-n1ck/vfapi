@@ -23,9 +23,15 @@ quit() {
 
 
 check_ui_stuff() {
-	[ "$(ls -A ./vui)" ] || echo "" && git submodule init && git submodule update
-	printf "\n[!] Upading (if any) Vulnerable UI (vui) over git.\n"
-	cd vui && git pull $(git remote get-url origin) &>/dev/null && cd - >/dev/null
+	if [ "$(ls -A ./vui)" ] ;then
+		printf "\n[!] Updating (if any) Vulnerable UI (vui) over git.\n"
+		cd vui && git pull $(git remote get-url origin) &>/dev/null && cd - >/dev/null
+		echo ""
+	else
+		printf "\n[!] Downloading Vulnerable User Interface (vui) over git.\n"
+		git submodule init
+		git submodule update
+	fi
 	if ! command -v deno >/dev/null; then
 		echo "[-] Deno is not found in the path. Shall I install it?"
 		echo -n "[y/N]: "
@@ -49,7 +55,7 @@ check_ui_stuff() {
 		echo "[+] Installing 'snel' (svelte for deno)"
 		deno run --allow-run --allow-read https://deno.land/x/snel/install.ts
 	fi
-	if ! command -v file_server 2>/dev/null; then
+	if ! command -v file_server >/dev/null; then
 		echo "[+] Installing HTTP 'file_server' (deno)"
 		deno install --allow-net --allow-read https://deno.land/std@0.106.0/http/file_server.ts
 	fi
