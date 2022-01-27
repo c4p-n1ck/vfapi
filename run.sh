@@ -23,7 +23,7 @@ quit() {
 
 
 check_ui_stuff() {
-	[ "$(ls -A ./vui)" ] || git submodule init && git submodule update
+	[ "$(ls -A ./vui)" ] || echo "" && git submodule init && git submodule update
 	printf "\n[!] Upading (if any) Vulnerable UI (vui) over git.\n"
 	cd vui && git pull $(git remote get-url origin) &>/dev/null && cd - >/dev/null
 	if ! command -v deno >/dev/null; then
