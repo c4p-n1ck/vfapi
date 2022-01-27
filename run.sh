@@ -47,6 +47,10 @@ check_ui_stuff() {
 		echo "[+] Installing 'snel' (svelte for deno)"
 		deno run --allow-run --allow-read https://deno.land/x/snel/install.ts
 	fi
+	if ! command -v file_server 2>/dev/null; then
+		echo "[+] Installing HTTP 'file_server' (deno)"
+		deno install --allow-net --allow-read https://deno.land/std@0.106.0/http/file_server.ts
+	fi
 }
 
 
