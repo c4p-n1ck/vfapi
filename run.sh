@@ -4,6 +4,8 @@ stty -echoctl
 
 # TODO: Custom Ports
 
+export DENO_INSTALL="/home/$USER/.deno"
+export PATH="$DENO_INSTALL/bin:$PATH"
 export host="127.0.0.1"
 export ui_port=8008
 export api_port=8888
@@ -33,10 +35,10 @@ check_ui_stuff() {
 			curl -fsSL https://deno.land/install.sh | sh
 			export DENO_INSTALL="/home/$USER/.deno"
 			export PATH="$DENO_INSTALL/bin:$PATH"
-			shells = "bash zsh"
+			shells="bash zsh"
 			for shell in $shells; do
-				dot_filename="~/.${shell}rc"
-				test -f $dot_filename && echo "export DENO_INSTALL="/home/\$USER/.deno\nexport PATH="\$DENO_INSTALL/bin/:\$PATH" >> $dot_filename
+				dot_filename="$HOME/.${shell}rc"
+				test -f $dot_filename && echo -e "export DENO_INSTALL=\"/home/\$USER/.deno\"\nexport PATH=\"\$DENO_INSTALL/bin/:\$PATH\"" >> "$dot_filename"
 			done
 		else
 			echo "[!] Please do make sure 'deno' is available in the \$PATH."
