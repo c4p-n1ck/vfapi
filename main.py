@@ -268,6 +268,8 @@ async def nosql_return_users(query: dict = Body(...), token: dict = Depends(vali
 @app.post('/login')
 async def authenticate(creds: Credentials):
     resp = await run_sql_query(f'SELECT username, password FROM users WHERE username = "{creds.username}";')
+    if not resp:
+        raise HTTPException(status_code=401, detail="Invalid credentials sent. Access Denied!")
     if type(resp) == list:
         resp = resp[0]
     if resp and md5(creds.password.encode()).hexdigest() == resp['password']:
