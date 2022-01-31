@@ -110,13 +110,13 @@ async def init_sql_db():
     db = await get_sql_db()
     await db.execute('''
 CREATE TABLE users ( id INTEGER PRIMARY KEY AUTOINCREMENT,
-                     name TEXT NOT NULL,
-                     username TEXT NOT NULL,
-                     password TEXT NOT NULL,
-                     address TEXT NOT NULL,
-                     email TEXT NOT NULL,
-                     tel TEXT NOT NULL
-                     );'''[1:])
+                    name TEXT NOT NULL,
+                    username TEXT NOT NULL,
+                    password TEXT NOT NULL,
+                    address TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    tel TEXT NOT NULL
+                    );'''[1:])
     await db.commit()
     for _ in range(random.randint(7, 84)):
         query = f'''
@@ -127,7 +127,7 @@ INSERT INTO users ( name,
                     email,
                     tel
                     )
-       VALUES (
+        VALUES (
                 "{fake.name()}",
                 "{fake.user_name()}",
                 "{md5(fake.password().encode()).hexdigest()}",
