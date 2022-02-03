@@ -100,21 +100,24 @@ main() {
 	check_ports
 	check_ui_stuff
 	sleep 0.48
+	echo "[+] Compiling User Interface"
+	deno compile -Ar --unstable vulnerable_user_interface.ts >/dev/null;
 	if [[ $1 == "--dev" ]]; then
 		printf "[!] Starting Vulnerable API <dev>\n"
 		cd $script_dir && python3 main.py --dev &
 		sleep 0.84
 		while :; do
 			printf "\n[!] Starting Vulnerable API UI <dev>\n"
-			cd vui && trex run start
+			cd vui && trex run start &
+			./vulnerable_user_interface
 			cd $script_dir
 		done
 	else
 		printf "[+] Starting Vulnerable API\n"
 		cd $script_dir && python3 main.py &
 		printf "[+] Starting Vulnerable API UI\n"
-		cd vui && snel build && cd dist && file_server --host 127.0.0.1 -p 8008
-		rm -rf __pycache__/ vfapi.*.db
+		cd vui && snel build && cd dist && file_server --host 127.0.0.1 -p 8008 &
+		cd $script_dir && ./vulnerable_user_interface && rm -rf __pycache__/ vfapi.*.db
 	fi
 }
 
