@@ -323,9 +323,11 @@ app.openapi = openapi
 if __name__ == '__main__':
     args, port = __import__('sys').argv, 8888
     for arg in args:
-        if int(arg) > 1024 and int(arg) < 65535:
-            port = int(arg)
-            print(f'[info] Using {port} as port number.')
+        try:
+            if int(arg) > 1024 and int(arg) < 65535:
+                port = int(arg)
+                print(f'[info] Using {port} as port number.')
+        except: pass
     if '--dev' in args:
         asyncio.run(init_db()); __import__('uvicorn').run('main:app', port=port, reload=True)
     else:
