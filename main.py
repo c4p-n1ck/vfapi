@@ -4,7 +4,7 @@
 '''
 Vulnerable FastAPI (vFastAPI)
 
-Please issue a GET request to "/docs" in order to obtain infromation regarding endpoints within this API.
+Please issue a GET request to "/docs" in order to obtain information regarding endpoints within this API.
 '''
 
 
@@ -12,8 +12,6 @@ from typing import Optional, Any
 
 from fastapi import (
     FastAPI,
-    APIRouter,
-    Request,
     Body,
     HTTPException,
     Header,
@@ -31,10 +29,10 @@ from fastapi import (
     time,
     CORSMiddleware,
     StaticFiles,
-    get_swagger_ui_oauth2_redirect_html,
     get_openapi,
     BaseModel,
     FileResponse,
+    RedirectResponse,
     HTMLResponse,
     JWT_SECRET,
     DB_FILENAME,
@@ -113,17 +111,29 @@ async def validation(token: Optional[str] = Header(None)):
 
 @app.get('/', include_in_schema=False)
 def root():
-    return {'goto': '/docs'}
+    return RedirectResponse('/docs')
 
 
 @app.get('/select')
 async def sql_return_users_from_username(username: str, token: dict = Depends(validation)):
+    """# Select\n
+            Selects and returns users using a SQL query.\n
+            _Parameters_: \n
+                - username: str\n
+                - token: jwt
+    """
     resp = await run_sql_query(f'SELECT * FROM users WHERE username = "{username}";')
     return resp
 
 
 @app.put('/post')
 async def add_post(post: Post, token: dict = Depends(validation)):
+    """# Add Post\n
+        Adds post content to the API database.\n
+        _Parameters_: \n
+            - Post (content): str\n
+            - token: jwt
+    """
     username = token['username']
     author = await run_sql_query(f'SELECT * FROM users WHERE username="{username}"')
     query = f'''
@@ -147,12 +157,29 @@ INSERT INTO posts ( content,
 
 @app.get('/posts')
 async def get_posts(token: dict = Depends(validation)):
+    """# Get Posts\n
+        Gets posts off the API.\n
+        _Parameters_: \n
+            - token: jwt
+    """
     posts = await run_sql_query('SELECT * FROM posts;')
     return {'posts': posts}
 
 
 @app.put('/user')
 async def add_user(user: User):
+    """# Add User\n
+        Adds a user to the API database.\n
+        _Parameters_: \n
+            - user (
+                name: str,
+                username: str,
+                address: str,
+                email: str,
+                password: str,
+                tel: str
+            )
+    """
     user.password = md5(user.password.encode()).hexdigest()
     query = f'''
 INSERT INTO users (
@@ -187,17 +214,35 @@ INSERT INTO users (
 
 @app.get('/find')
 async def nosql_return_users_from_username(username: str, token: dict = Depends(validation)):
+    """# Find\n
+        Finds user via username on the API using NoSql.\n
+        _Parameters_: \n
+            - username: str\n
+            - token: jwt
+    """
     return get_nosql_users({'username': username})
 
 
 @app.post('/find')
 async def nosql_return_users(query: dict = Body(...), token: dict = Depends(validation)):
-    print(query)
+    """# Return Users\n
+        Returns user(s) via a JSON query on the API using NoSql!\n
+        _Parameters_: \n
+            - query: json\n
+            - token: jwt
+    """
     return get_nosql_users(query)
 
 
 @app.post('/login')
 async def authenticate(creds: Credentials):
+    """# Login\n
+        Returns a token after authenticating a user via their credentials.\n
+        _Parameters_: \n
+            - Credentials\n
+                - username: str\n
+                - password: str
+    """
     resp = await run_sql_query(f'SELECT username, password FROM users WHERE username = "{creds.username}";')
     if not resp:
         raise HTTPException(status_code=401, detail="Invalid credentials sent. Access Denied!")
@@ -210,6 +255,20 @@ async def authenticate(creds: Credentials):
 
 @app.delete('/user')
 async def remove_user(username: Optional[str] = '', user: Optional[User] = None, token: dict = Depends(validation)):
+    """# Remove User\n
+        Remove a user from the API database based on either username, **OR** user object.\n
+        _Parameters_: \n
+            + username: str\n
+            + user (\n
+                name: str,\n
+                username: str,\n
+                address: str,\n
+                email: str,\n
+                password: str,\n
+                tel: str\n
+            )\n
+            - token: jwt
+    """
     if username:
         db_client.vfapi.users.delete_one({'username': username})
         await run_sql_query(f'DELETE FROM users WHERE username = "{username}";', commit=True)
@@ -255,17 +314,19 @@ async def return_docs():
 
 @app.get('/redoc', include_in_schema=False)
 async def return_redoc():
-    # TODO: Serve font locally.
-    return HTMLResponse('<!DOCTYPE html><html><head><title>' + app.title + ' - ReDoc</title><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"><link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet"><link rel="shortcut icon" href="static/img/favicon.png"><link rel="stylesheet" href="static/css/redoc-ui.css" type="text/css"></head><body><redoc spec-url="/openapi.json"></redoc><script src="static/js/redoc.standalone.js"> </script></body></html>', status_code=200)
+    return HTMLResponse('<!DOCTYPE html><html><head><title>' + app.title + ' - ReDoc</title><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"><link href="static/css/Montserrat.css" rel="stylesheet"><link rel="shortcut icon" href="static/img/favicon.png"><link rel="stylesheet" href="static/css/redoc-ui.css" type="text/css"></head><body><redoc spec-url="/openapi.json"></redoc><script src="static/js/redoc.standalone.js"> </script></body></html>', status_code=200)
 
 
 app.openapi = openapi
 
 
 if __name__ == '__main__':
-    # TODO: Custom port number.
-    args = __import__('sys').argv
+    args, port = __import__('sys').argv, 8888
+    for arg in args:
+        if int(arg) > 1024 and int(arg) < 65535:
+            port = int(arg)
+            print(f'[info] Using {port} as port number.')
     if '--dev' in args:
-        asyncio.run(init_db()); __import__('uvicorn').run('main:app', port=8888, reload=True)
+        asyncio.run(init_db()); __import__('uvicorn').run('main:app', port=port, reload=True)
     else:
-        asyncio.run(init_db()); __import__('uvicorn').run('main:app', port=8888, reload=False)
+        asyncio.run(init_db()); __import__('uvicorn').run('main:app', port=port, reload=False)

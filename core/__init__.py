@@ -22,7 +22,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.responses import (
     FileResponse,
-    HTMLResponse
+    HTMLResponse,
+    RedirectResponse
 )
 
 from pydantic import BaseModel
